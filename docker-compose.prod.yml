@@ -1,0 +1,83 @@
+# Production stack — Oracle VPS
+# Usage:
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: supportai_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-supportai}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-supportai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No host ports — internal Docker network only
+
+  redis:
+    image: redis:7-alpine
+    container_name: supportai_redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No host ports
+
+  web:
+    build: .
+    container_name: supportai_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_ENGINE: django.db.backends.postgresql
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      SEED_DEMO_DATA: "false"
+    volumes:
+      - media_data:/app/media_uploads
+    command:
+      [
+        "daphne",
+        "-b",
+        "0.0.0.0",
+        "-p",
+        "8000",
+        "supportai.asgi:application",
+      ]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # No host ports — Caddy proxies
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: supportai_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - media_data:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  media_data:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,17 @@
+# Production reverse proxy + auto HTTPS (Let's Encrypt)
+# Domain: rag-support-assistant.duckdns.org
+
+rag-support-assistant.duckdns.org {
+	encode gzip
+
+	# Media uploads (knowledge PDFs, etc.)
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+	}
+
+	# Django API + WebSocket (Daphne ASGI)
+	handle {
+		reverse_proxy web:8000
+	}
+}

@@ -1,40 +1,57 @@
 # SupportAI Backend
 
-cd backend
+Django REST API for an AI-powered Customer Support & Ticket Management System.
+
+```bash
 docker compose up -d          # background-এ চালু
 docker compose logs -f web    # log দেখতে
 docker compose down           # বন্ধ করতে
-
-Django REST API for AI Customer Support & Ticket Management System.
+```
 
 > **Production deploy:** Oracle Cloud, DuckDNS, OpenRouter, pgvector, CI/CD — সব planning [`docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md) এ আছে।
 
 ---
 
+## About
+
+**SupportAI** is a RAG-based support backend that helps customers get answers from a knowledge base and escalate to human agents when needed.
+
+**What it does:**
+- **Auth** — JWT login/register, Google OAuth, password reset
+- **Tickets** — create, assign, resolve, SLA tracking, activity timeline
+- **AI Chat** — RAG Q&A over uploaded docs (pgvector + OpenRouter), escalate to agent
+- **Knowledge base** — PDF/document upload, chunking, embeddings
+- **Notifications** — real-time alerts (WebSocket-ready)
+- **Analytics** — admin dashboard and agent workload
+
+**Stack:** Django REST Framework · PostgreSQL + pgvector · Redis · OpenRouter · Docker
+
+---
+
 ## Table of Contents
 
-1. [Project Structure](#project-structure)
-2. [Run with Docker (Recommended)](#run-with-docker-recommended)
-3. [Run Locally (without Docker)](#run-locally-without-docker)
-4. [Swagger API Docs](#swagger-api-docs)
-5. [Demo Accounts](#demo-accounts)
-6. [API Endpoints](#api-endpoints)
-7. [Useful Docker Commands](#useful-docker-commands)
-8. [Troubleshooting](#troubleshooting)
+1. [About](#about)
+2. [Project Structure](#project-structure)
+3. [Run with Docker (Recommended)](#run-with-docker-recommended)
+4. [Run Locally (without Docker)](#run-locally-without-docker)
+5. [Swagger API Docs](#swagger-api-docs)
+6. [Demo Accounts](#demo-accounts)
+7. [API Endpoints](#api-endpoints)
+8. [Useful Docker Commands](#useful-docker-commands)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Project Structure
 
 ```
-backend/
 ├── supportai/              # Project settings
 ├── accountssu/             # User (models)
 ├── ticketssu/              # Ticket, SLA, Activity (models)
 ├── knowledgesu/            # Knowledge base (models)
 ├── chatsu/                 # Chat sessions (models)
 ├── notificationssu/        # Notifications (models)
-├── common/                 # Shared helpers, permissions
+├── common/                 # Shared helpers, permissions, RAG
 ├── globalapi/              # Public APIs (auth)
 │   ├── serializers/
 │   ├── views/
@@ -54,7 +71,7 @@ backend/
 
 ## Run with Docker (Recommended)
 
-> **বাংলায় সংক্ষেপে:** `cd backend` → `cp env_sample.txt .env` → `docker compose up --build`  
+> **বাংলায় সংক্ষেপে:** `cp env_sample.txt .env` → `docker compose up --build`  
 > তারপর browser-এ খোল: http://localhost:8000/api/docs/
 
 ### Prerequisites
@@ -69,13 +86,7 @@ docker --version
 docker compose version
 ```
 
-### Step 1 — Go to backend folder
-
-```bash
-cd backend
-```
-
-### Step 2 — Create `.env` file
+### Step 1 — Create `.env` file
 
 ```bash
 cp env_sample.txt .env
@@ -84,7 +95,7 @@ cp env_sample.txt .env
 > Docker Compose automatically overrides DB settings to use PostgreSQL.  
 > You do not need to edit `.env` for basic Docker usage.
 
-### Step 3 — Build and start all services
+### Step 2 — Build and start all services
 
 ```bash
 docker compose up --build
@@ -99,7 +110,7 @@ First run will:
 6. Seed demo data
 7. Start Django on port **8000**
 
-### Step 4 — Open in browser
+### Step 3 — Open in browser
 
 | Service | URL |
 |---------|-----|
@@ -131,10 +142,9 @@ docker compose up --build
 
 ## Run Locally (without Docker)
 
-> **Note:** Use `backend/venv`. On Ubuntu, if `python` is missing, use `python3`.
+> **Note:** Use `venv` in this folder. On Ubuntu, if `python` is missing, use `python3`.
 
 ```bash
-cd backend
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt  # or: requirements/development.txt

@@ -1,6 +1,7 @@
-# Production stack — Oracle VPS
+# Production stack — AWS EC2 / any VPS (Oracle, GCP, etc.)
 # Usage:
 #   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# Guide: docs/DEPLOYMENT_AWS.md
 
 services:
   db:

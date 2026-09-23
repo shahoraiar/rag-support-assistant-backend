@@ -1,17 +1,5 @@
 # SupportAI Backend
 
-Django REST API for an AI-powered Customer Support & Ticket Management System.
-
-```bash
-docker compose up -d          # background-এ চালু
-docker compose logs -f web    # log দেখতে
-docker compose down           # বন্ধ করতে
-```
-
-> **Production deploy:** Oracle Cloud, DuckDNS, OpenRouter, pgvector, CI/CD — সব planning [`docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md) এ আছে।
-
----
-
 ## About
 
 **SupportAI** is a RAG-based support backend that helps customers get answers from a knowledge base and escalate to human agents when needed.
@@ -25,6 +13,12 @@ docker compose down           # বন্ধ করতে
 - **Analytics** — admin dashboard and agent workload
 
 **Stack:** Django REST Framework · PostgreSQL + pgvector · Redis · OpenRouter · Docker
+
+```bash
+docker compose up -d          # background-এ চালু
+docker compose logs -f web    # log দেখতে
+docker compose down           # বন্ধ করতে
+```
 
 ---
 

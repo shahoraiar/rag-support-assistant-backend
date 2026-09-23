@@ -15,9 +15,9 @@
 **Stack:** Django REST Framework · PostgreSQL + pgvector · Redis · OpenRouter · Docker
 
 ```bash
-docker compose up -d          # background-এ চালু
-docker compose logs -f web    # log দেখতে
-docker compose down           # বন্ধ করতে
+docker compose up -d          # run in background
+docker compose logs -f web    # follow logs
+docker compose down           # stop
 ```
 
 ---
@@ -65,8 +65,8 @@ docker compose down           # বন্ধ করতে
 
 ## Run with Docker (Recommended)
 
-> **বাংলায় সংক্ষেপে:** `cp env_sample.txt .env` → `docker compose up --build`  
-> তারপর browser-এ খোল: http://localhost:8000/api/docs/
+> **Quick start:** `cp env_sample.txt .env` → `docker compose up --build`  
+> Then open: http://localhost:8000/api/docs/
 
 ### Prerequisites
 

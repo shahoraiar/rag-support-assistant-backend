@@ -20,6 +20,7 @@ def main():
     db_password = os.getenv("DB_PASSWORD", "postgres")
     db_host = os.getenv("DB_HOST", "localhost")
     db_port = os.getenv("DB_PORT", "5432")
+    db_sslmode = os.getenv("DB_SSLMODE", "prefer")
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -29,12 +30,14 @@ def main():
                 password=db_password,
                 host=db_host,
                 port=db_port,
+                sslmode=db_sslmode,
+                connect_timeout=5,
             )
             conn.close()
             print("Database is ready!")
             return
-        except psycopg2.OperationalError:
-            print(f"Database not ready (attempt {attempt}/{MAX_RETRIES})...")
+        except psycopg2.OperationalError as error:
+            print(f"Database not ready (attempt {attempt}/{MAX_RETRIES}): {error}")
             time.sleep(RETRY_INTERVAL)
 
     print("Could not connect to database.")

@@ -103,6 +103,8 @@ else:
             "PASSWORD": os.getenv("DB_PASSWORD", "postgres"),
             "HOST": os.getenv("DB_HOST", "localhost"),
             "PORT": os.getenv("DB_PORT", "5432"),
+            # Local: prefer (SSL optional) | AWS RDS: require
+            "OPTIONS": {"sslmode": os.getenv("DB_SSLMODE", "prefer")},
         }
     }
 
@@ -142,6 +144,12 @@ CORS_ALLOWED_ORIGINS = [
     if o.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+if not DEBUG:
+    # Caddy terminates TLS and forwards X-Forwarded-Proto
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()

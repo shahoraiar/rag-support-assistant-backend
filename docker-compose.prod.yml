@@ -1,26 +1,13 @@
-# Production stack — AWS EC2 / any VPS (Oracle, GCP, etc.)
-# Usage:
+# Production stack — AWS EC2 + RDS PostgreSQL (pgvector)
+# Independent of docker-compose.yml (local dev). Use only this file on the server:
 #   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 # Guide: docs/DEPLOYMENT_AWS.md
+#
+# Expected layout on EC2:
+#   /opt/apps/rag-support-assistant-backend   (this repo)
+#   /opt/apps/rag-support-assistant-frontend  (frontend repo, built into dist/)
 
 services:
-  db:
-    image: pgvector/pgvector:pg16
-    container_name: supportai_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME:-supportai}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-supportai}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    # No host ports — internal Docker network only
-
   redis:
     image: redis:7-alpine
     container_name: supportai_redis
@@ -40,12 +27,11 @@ services:
       - .env
     environment:
       DB_ENGINE: django.db.backends.postgresql
-      DB_HOST: db
-      DB_PORT: "5432"
       REDIS_URL: redis://redis:6379/0
       SEED_DEMO_DATA: "false"
     volumes:
       - media_data:/app/media_uploads
+      - static_data:/app/staticfiles
     command:
       [
         "daphne",
@@ -56,8 +42,6 @@ services:
         "supportai.asgi:application",
       ]
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     # No host ports — Caddy proxies
@@ -72,13 +56,15 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - media_data:/srv/media:ro
+      - static_data:/srv/static:ro
+      - ${FRONTEND_DIST_DIR:-../rag-support-assistant-frontend/dist}:/srv/frontend:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
       - web
 
 volumes:
-  postgres_data:
   media_data:
+  static_data:
   caddy_data:
   caddy_config:

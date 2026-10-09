@@ -1,7 +1,8 @@
 # Production reverse proxy + auto HTTPS (Let's Encrypt)
-# Domain: rag-support-assistant.duckdns.org
+# Both DuckDNS domains must point to the EC2 Elastic IP.
 
-rag-support-assistant.duckdns.org {
+# Backend: Django API + WebSocket (Daphne ASGI)
+rag-support-api.duckdns.org {
 	encode gzip
 
 	# Media uploads (knowledge PDFs, etc.)
@@ -10,8 +11,21 @@ rag-support-assistant.duckdns.org {
 		file_server
 	}
 
-	# Django API + WebSocket (Daphne ASGI)
+	# Django admin / DRF static files (collectstatic)
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+
 	handle {
 		reverse_proxy web:8000
 	}
+}
+
+# Frontend: React (Vite) build output, SPA fallback to index.html
+rag-support-assistant.duckdns.org {
+	encode gzip
+	root * /srv/frontend
+	try_files {path} /index.html
+	file_server
 }

@@ -22,10 +22,8 @@ rag-support-api.duckdns.org {
 	}
 }
 
-# Frontend: React (Vite) build output, SPA fallback to index.html
+# Frontend: separate container (frontend repo's docker-compose.prod.yml) on the shared "supportai" network
 rag-support-assistant.duckdns.org {
 	encode gzip
-	root * /srv/frontend
-	try_files {path} /index.html
-	file_server
+	reverse_proxy supportai_frontend:80
 }

@@ -5,7 +5,10 @@
 #
 # Expected layout on EC2:
 #   /opt/apps/rag-support-assistant-backend   (this repo)
-#   /opt/apps/rag-support-assistant-frontend  (frontend repo, built into dist/)
+#   /opt/apps/rag-support-assistant-frontend  (frontend repo, own docker-compose.prod.yml)
+#
+# Start this stack first: it creates the shared "supportai" network that the
+# frontend container joins, and Caddy proxies the frontend domain to it.
 
 services:
   redis:
@@ -57,11 +60,14 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - media_data:/srv/media:ro
       - static_data:/srv/static:ro
-      - ${FRONTEND_DIST_DIR:-../rag-support-assistant-frontend/dist}:/srv/frontend:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
       - web
+
+networks:
+  default:
+    name: supportai
 
 volumes:
   media_data:
